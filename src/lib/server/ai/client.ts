@@ -1,6 +1,10 @@
 import { env } from '$env/dynamic/private';
 
-export type AIProvider = 'anthropic' | 'openai';
+export type AIProvider = 'anthropic' | 'openai' | 'nvidia';
+
+const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
+const NVIDIA_PRIMARY_MODEL = 'z-ai/glm5';
+const NVIDIA_FALLBACK_MODEL = 'moonshotai/kimi-k2.5';
 
 interface ChatMessage {
 	role: 'system' | 'user' | 'assistant';
@@ -51,6 +55,11 @@ export async function chatCompletion(
 
 		const data = await res.json();
 		return data.content[0].text;
+	} else if (provider === 'nvidia') {
+		const apiKey = env.NVIDIA_API_KEY;
+		if (!apiKey) throw new Error('NVIDIA_API_KEY er ikke konfigureret');
+
+		return await nvidiaCompletion(apiKey, messages, maxTokens, temperature);
 	} else {
 		const apiKey = env.OPENAI_API_KEY;
 		if (!apiKey) throw new Error('OPENAI_API_KEY er ikke konfigureret');
@@ -77,6 +86,50 @@ export async function chatCompletion(
 		const data = await res.json();
 		return data.choices[0].message.content;
 	}
+}
+
+async function nvidiaCompletion(
+	apiKey: string,
+	messages: ChatMessage[],
+	maxTokens: number,
+	temperature: number
+): Promise<string> {
+	const models = [NVIDIA_PRIMARY_MODEL, NVIDIA_FALLBACK_MODEL];
+
+	for (const model of models) {
+		try {
+			const res = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${apiKey}`
+				},
+				body: JSON.stringify({
+					model,
+					messages,
+					max_tokens: maxTokens,
+					temperature
+				})
+			});
+
+			if (!res.ok) {
+				const err = await res.text();
+				if (model === NVIDIA_FALLBACK_MODEL) {
+					throw new Error(`Nvidia API fejl: ${res.status} ${err}`);
+				}
+				console.warn(`Nvidia model ${model} fejlede (${res.status}), prøver fallback...`);
+				continue;
+			}
+
+			const data = await res.json();
+			return data.choices[0].message.content;
+		} catch (e) {
+			if (model === NVIDIA_FALLBACK_MODEL) throw e;
+			console.warn(`Nvidia model ${model} fejlede, prøver fallback...`, e);
+		}
+	}
+
+	throw new Error('Alle Nvidia modeller fejlede');
 }
 
 export async function* chatCompletionStream(
@@ -142,6 +195,11 @@ export async function* chatCompletionStream(
 				}
 			}
 		}
+	} else if (provider === 'nvidia') {
+		const apiKey = env.NVIDIA_API_KEY;
+		if (!apiKey) throw new Error('NVIDIA_API_KEY er ikke konfigureret');
+
+		yield* nvidiaCompletionStream(apiKey, messages, maxTokens, temperature);
 	} else {
 		const apiKey = env.OPENAI_API_KEY;
 		if (!apiKey) throw new Error('OPENAI_API_KEY er ikke konfigureret');
@@ -190,4 +248,73 @@ export async function* chatCompletionStream(
 			}
 		}
 	}
+}
+
+async function* nvidiaCompletionStream(
+	apiKey: string,
+	messages: ChatMessage[],
+	maxTokens: number,
+	temperature: number
+): AsyncGenerator<string> {
+	const models = [NVIDIA_PRIMARY_MODEL, NVIDIA_FALLBACK_MODEL];
+
+	for (const model of models) {
+		try {
+			const res = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${apiKey}`
+				},
+				body: JSON.stringify({
+					model,
+					messages,
+					max_tokens: maxTokens,
+					temperature,
+					stream: true
+				})
+			});
+
+			if (!res.ok) {
+				if (model === NVIDIA_FALLBACK_MODEL) {
+					throw new Error(`Nvidia API fejl: ${res.status}`);
+				}
+				console.warn(`Nvidia model ${model} fejlede (${res.status}), prøver fallback...`);
+				continue;
+			}
+
+			const reader = res.body!.getReader();
+			const decoder = new TextDecoder();
+			let buffer = '';
+
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+
+				buffer += decoder.decode(value, { stream: true });
+				const lines = buffer.split('\n');
+				buffer = lines.pop() || '';
+
+				for (const line of lines) {
+					if (line.startsWith('data: ')) {
+						const data = line.slice(6);
+						if (data === '[DONE]') return;
+						try {
+							const parsed = JSON.parse(data);
+							const content = parsed.choices?.[0]?.delta?.content;
+							if (content) yield content;
+						} catch {
+							// skip
+						}
+					}
+				}
+			}
+			return;
+		} catch (e) {
+			if (model === NVIDIA_FALLBACK_MODEL) throw e;
+			console.warn(`Nvidia model ${model} fejlede, prøver fallback...`, e);
+		}
+	}
+
+	throw new Error('Alle Nvidia modeller fejlede');
 }
