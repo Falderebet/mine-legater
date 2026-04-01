@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(npx sv:*)",
+      "Bash(cp -r /tmp/mine-legater-temp/* /c/Users/frede/Documents/mine-legater/)",
+      "Bash(cp /tmp/mine-legater-temp/.gitignore /c/Users/frede/Documents/mine-legater/)",
+      "Bash(cp /tmp/mine-legater-temp/.npmrc /c/Users/frede/Documents/mine-legater/)",
+      "Bash(npm install:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx svelte-kit:*)",
+      "Bash(npx svelte-check:*)",
+      "Bash(npx vitest:*)"
+    ]
+  }
+}
