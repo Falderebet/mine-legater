@@ -14,6 +14,21 @@ export interface ScrapedInfo {
 }
 
 export async function scrapeScholarshipUrl(url: string): Promise<ScrapedInfo> {
+	// Validate URL to prevent SSRF
+	let parsed: URL;
+	try {
+		parsed = new URL(url);
+	} catch {
+		throw new Error('Ugyldig URL');
+	}
+	if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+		throw new Error('Kun HTTP og HTTPS URLs er tilladt');
+	}
+	const hostname = parsed.hostname;
+	if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname.startsWith('10.') || hostname.startsWith('192.168.') || hostname.startsWith('169.254.') || hostname.endsWith('.local')) {
+		throw new Error('Interne URLs er ikke tilladt');
+	}
+
 	// Fetch the URL content
 	const res = await fetch(url, {
 		headers: {

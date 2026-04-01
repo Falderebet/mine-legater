@@ -42,7 +42,7 @@
 	}
 
 	function renameDoc(index: number, newTitle: string) {
-		selectedDocs[index].title = newTitle;
+		selectedDocs = selectedDocs.map((d, i) => i === index ? { ...d, title: newTitle } : d);
 	}
 
 	// Step 4: Document sources
@@ -84,8 +84,7 @@
 	function toggleDoc(category: string, label: string, type: string) {
 		const idx = selectedDocs.findIndex((d) => d.category === category);
 		if (idx >= 0) {
-			selectedDocs.splice(idx, 1);
-			selectedDocs = selectedDocs;
+			selectedDocs = selectedDocs.filter((_, i) => i !== idx);
 		} else {
 			selectedDocs = [...selectedDocs, { category, title: label, type }];
 		}
@@ -109,6 +108,9 @@
 					scrapedInfo
 				})
 			});
+			if (!appRes.ok) {
+				throw new Error('Kunne ikke oprette ansøgning');
+			}
 			const app = await appRes.json();
 
 			// Create selected documents
@@ -218,21 +220,21 @@
 						{#if scrapedInfo.description}
 							<div><span class="font-medium">Beskrivelse:</span> {scrapedInfo.description}</div>
 						{/if}
-						{#if (scrapedInfo.requirements as string[])?.length}
+						{#if Array.isArray(scrapedInfo.requirements) && scrapedInfo.requirements.length}
 							<div>
 								<span class="font-medium">Krav:</span>
 								<ul class="ml-4 mt-1 list-disc">
-									{#each scrapedInfo.requirements as string[] as req}
+									{#each scrapedInfo.requirements as req}
 										<li>{req}</li>
 									{/each}
 								</ul>
 							</div>
 						{/if}
-						{#if (scrapedInfo.documentsNeeded as string[])?.length}
+						{#if Array.isArray(scrapedInfo.documentsNeeded) && scrapedInfo.documentsNeeded.length}
 							<div>
 								<span class="font-medium">Nødvendige dokumenter:</span>
 								<ul class="ml-4 mt-1 list-disc">
-									{#each scrapedInfo.documentsNeeded as string[] as doc}
+									{#each scrapedInfo.documentsNeeded as doc}
 										<li>{doc}</li>
 									{/each}
 								</ul>

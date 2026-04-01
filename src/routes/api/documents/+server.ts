@@ -30,13 +30,13 @@ export const POST: RequestHandler = async ({ request }) => {
 	const result = await db
 		.insert(documents)
 		.values({
-			applicationId: body.applicationId || null,
+			applicationId: body.applicationId ?? null,
 			title: body.title,
-			type: body.type || 'rich_text',
-			category: body.category || 'other',
-			content: body.content || null,
-			isTemplate: body.isTemplate || false,
-			sourceTemplateId: body.sourceTemplateId || null
+			type: body.type ?? 'rich_text',
+			category: body.category ?? 'other',
+			content: body.content ?? null,
+			isTemplate: body.isTemplate ?? false,
+			sourceTemplateId: body.sourceTemplateId ?? null
 		})
 		.returning();
 	return json(result[0], { status: 201 });
