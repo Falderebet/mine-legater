@@ -31,5 +31,11 @@ export function formatDate(dateStr: string | null): string {
 
 export function isOverdue(deadline: string | null): boolean {
 	if (!deadline) return false;
-	return new Date(deadline) < new Date();
+	// Normalize both dates to YYYY-MM-DD to avoid timezone issues with date-only strings
+	const deadlineDate = new Date(deadline);
+	if (isNaN(deadlineDate.getTime())) return false;
+	const today = new Date();
+	const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+	const deadlineStr = deadline.length === 10 ? deadline : deadlineDate.toISOString().slice(0, 10);
+	return deadlineStr < todayStr;
 }

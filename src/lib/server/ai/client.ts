@@ -16,8 +16,8 @@ export async function chatCompletion(
 	options?: { maxTokens?: number; temperature?: number }
 ): Promise<string> {
 	const provider = getProvider();
-	const maxTokens = options?.maxTokens || 2048;
-	const temperature = options?.temperature || 0.7;
+	const maxTokens = options?.maxTokens ?? 2048;
+	const temperature = options?.temperature ?? 0.7;
 
 	if (provider === 'anthropic') {
 		const apiKey = env.ANTHROPIC_API_KEY;
@@ -84,8 +84,8 @@ export async function* chatCompletionStream(
 	options?: { maxTokens?: number; temperature?: number }
 ): AsyncGenerator<string> {
 	const provider = getProvider();
-	const maxTokens = options?.maxTokens || 2048;
-	const temperature = options?.temperature || 0.7;
+	const maxTokens = options?.maxTokens ?? 2048;
+	const temperature = options?.temperature ?? 0.7;
 
 	if (provider === 'anthropic') {
 		const apiKey = env.ANTHROPIC_API_KEY;

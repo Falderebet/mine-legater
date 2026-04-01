@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import RichTextEditor from '$lib/components/editor/RichTextEditor.svelte';
 	import SpreadsheetEditor from '$lib/components/editor/SpreadsheetEditor.svelte';
@@ -9,18 +10,29 @@
 
 	let saveStatus = $state<'saved' | 'saving' | 'unsaved'>('saved');
 	let saveTimeout: ReturnType<typeof setTimeout>;
+	let currentContent = $state<unknown>(data.document.content);
+
+	onDestroy(() => {
+		clearTimeout(saveTimeout);
+	});
 
 	async function saveContent(content: unknown) {
+		currentContent = content;
 		saveStatus = 'unsaved';
 		clearTimeout(saveTimeout);
 		saveTimeout = setTimeout(async () => {
 			saveStatus = 'saving';
-			await fetch(`/api/documents/${data.document.id}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ content })
-			});
-			saveStatus = 'saved';
+			try {
+				const res = await fetch(`/api/documents/${data.document.id}`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ content })
+				});
+				if (!res.ok) throw new Error('Fejl ved gemning');
+				saveStatus = 'saved';
+			} catch {
+				saveStatus = 'unsaved';
+			}
 		}, 1000);
 	}
 
@@ -34,7 +46,7 @@
 				title,
 				type: data.document.type,
 				category: data.document.category,
-				content: data.document.content,
+				content: currentContent,
 				isTemplate: true,
 				sourceTemplateId: null
 			})
@@ -73,16 +85,18 @@
 	</div>
 
 	<div class="rounded-xl border border-gray-200 bg-white">
-		{#if data.document.type === 'spreadsheet'}
-			<SpreadsheetEditor
-				content={data.document.content}
-				onchange={saveContent}
-			/>
-		{:else}
-			<RichTextEditor
-				content={data.document.content}
-				onchange={saveContent}
-			/>
-		{/if}
+		{#key data.document.id}
+			{#if data.document.type === 'spreadsheet'}
+				<SpreadsheetEditor
+					content={data.document.content}
+					onchange={saveContent}
+				/>
+			{:else}
+				<RichTextEditor
+					content={data.document.content}
+					onchange={saveContent}
+				/>
+			{/if}
+		{/key}
 	</div>
 </div>

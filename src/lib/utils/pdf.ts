@@ -81,11 +81,16 @@ export async function exportSpreadsheetToPdf(title: string, content: unknown) {
 	const headers = data?.headers || [];
 	const rows = data?.rows || [];
 
+	const colCount = headers.length;
 	const tableBody = [
 		headers.map((h) => ({ text: h, bold: true, fillColor: '#f3f4f6' })),
 		...rows
-			.filter((row) => row.some((cell) => cell.trim()))
-			.map((row) => row.map((cell) => ({ text: cell })))
+			.filter((row) => row.some((cell) => String(cell ?? '').trim()))
+			.map((row) => {
+				// Pad or truncate rows to match header count
+				const normalized = Array.from({ length: colCount }, (_, i) => String(row[i] ?? ''));
+				return normalized.map((cell) => ({ text: cell }));
+			})
 	];
 
 	if (tableBody.length <= 1) {
