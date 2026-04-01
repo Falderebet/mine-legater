@@ -8,7 +8,7 @@
 
 	let { label, error, value = $bindable(), class: className = '', id, ...rest }: Props = $props();
 
-	const inputId = id ?? (label ? `input-${label.replace(/[^a-z0-9]/gi, '-').toLowerCase()}` : undefined);
+	const inputId = $derived(id ?? (label ? `input-${label.replace(/[^a-z0-9]/gi, '-').toLowerCase()}` : undefined));
 </script>
 
 <div class="space-y-1">

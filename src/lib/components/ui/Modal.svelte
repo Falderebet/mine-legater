@@ -19,7 +19,7 @@
 		<div class="relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
 			<div class="mb-4 flex items-center justify-between">
 				<h2 class="text-lg font-semibold text-gray-900">{title}</h2>
-				<button onclick={onclose} class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+				<button onclick={onclose} class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" aria-label="Luk">
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 					</svg>

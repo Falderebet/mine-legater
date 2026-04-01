@@ -198,15 +198,15 @@
 	<div class="space-y-4">
 		<Input label="Titel" bind:value={newDocTitle} placeholder="F.eks. Motiveret ansøgning" />
 		<div class="space-y-1">
-			<label class="block text-sm font-medium text-gray-700">Type</label>
-			<select bind:value={newDocType} class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+			<label for="new-doc-type" class="block text-sm font-medium text-gray-700">Type</label>
+			<select id="new-doc-type" bind:value={newDocType} class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
 				<option value="rich_text">Tekst</option>
 				<option value="spreadsheet">Regneark (budget)</option>
 			</select>
 		</div>
 		<div class="space-y-1">
-			<label class="block text-sm font-medium text-gray-700">Kategori</label>
-			<select bind:value={newDocCategory} class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+			<label for="new-doc-category" class="block text-sm font-medium text-gray-700">Kategori</label>
+			<select id="new-doc-category" bind:value={newDocCategory} class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
 				{#each Object.entries(categoryLabels) as [value, label]}
 					<option {value}>{label}</option>
 				{/each}
