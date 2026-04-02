@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { documents, applications } from '$lib/server/db/schema';
+import { documents, applications, interviewResponses } from '$lib/server/db/schema';
 import type { RequestHandler } from './$types';
 
 /**
@@ -13,6 +13,7 @@ export const POST: RequestHandler = async () => {
 		error(403, 'Reset endpoint is only available in test mode');
 	}
 
+	await db.delete(interviewResponses);
 	await db.delete(documents);
 	await db.delete(applications);
 

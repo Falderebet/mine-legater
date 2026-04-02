@@ -126,6 +126,41 @@
 		</Card>
 	{/if}
 
+	<!-- Interview section -->
+	<Card class="mb-6">
+		<div class="flex items-center justify-between">
+			<div>
+				<h3 class="text-sm font-medium text-gray-900">Personligt interview</h3>
+				<p class="mt-0.5 text-xs text-gray-500">
+					{#if data.application.interviewCompleted}
+						Interviewet er fuldført ({data.interviewResponseCount} svar indsamlet).
+						Dine svar bruges til at generere personlige dokumenter.
+					{:else if data.interviewResponseCount > 0}
+						Interviewet er i gang ({data.interviewResponseCount} svar indsamlet).
+					{:else}
+						Besvar et kort interview, så AI'en kan skrive en personlig og autentisk ansøgning.
+					{/if}
+				</p>
+			</div>
+			<div class="flex items-center gap-2">
+				{#if data.application.interviewCompleted}
+					<Badge variant="success" label="Fuldført" />
+				{/if}
+				<a href="/applications/{data.application.id}/interview">
+					<Button size="sm" variant={data.application.interviewCompleted ? 'secondary' : 'primary'}>
+						{#if data.application.interviewCompleted}
+							Se interview
+						{:else if data.interviewResponseCount > 0}
+							Fortsæt interview
+						{:else}
+							Start interview
+						{/if}
+					</Button>
+				</a>
+			</div>
+		</div>
+	</Card>
+
 	<div class="mb-4 flex items-center justify-between">
 		<h2 class="text-lg font-semibold text-gray-900">Dokumenter</h2>
 		<Button size="sm" onclick={() => (showNewDocModal = true)}>Nyt dokument</Button>

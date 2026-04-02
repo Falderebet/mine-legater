@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { applications, documents, interviewResponses } from '$lib/server/db/schema';
+import { applications, interviewResponses } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
@@ -14,11 +14,6 @@ export const load: PageServerLoad = async ({ params }) => {
 		.where(eq(applications.id, id));
 	if (!app.length) throw error(404, 'Ansøgning ikke fundet');
 
-	const docs = await db
-		.select()
-		.from(documents)
-		.where(eq(documents.applicationId, id));
-
 	const responses = await db
 		.select()
 		.from(interviewResponses)
@@ -26,7 +21,6 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	return {
 		application: app[0],
-		documents: docs,
-		interviewResponseCount: responses.length
+		interviewResponses: responses
 	};
 };

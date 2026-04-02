@@ -16,6 +16,7 @@ export const applications = sqliteTable('applications', {
 	createdAt: text('created_at')
 		.notNull()
 		.default(sql`(datetime('now'))`),
+	interviewCompleted: integer('interview_completed', { mode: 'boolean' }).notNull().default(false),
 	updatedAt: text('updated_at')
 		.notNull()
 		.default(sql`(datetime('now'))`)
@@ -46,7 +47,31 @@ export const documents = sqliteTable('documents', {
 		.default(sql`(datetime('now'))`)
 });
 
+export const interviewResponses = sqliteTable('interview_responses', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	applicationId: integer('application_id')
+		.references(() => applications.id, { onDelete: 'cascade' })
+		.notNull(),
+	domain: text('domain', {
+		enum: [
+			'fund_alignment',
+			'project_definition',
+			'unique_qualifications',
+			'budget_justification',
+			'career_vision'
+		]
+	}).notNull(),
+	question: text('question').notNull(),
+	answer: text('answer').notNull(),
+	sortOrder: integer('sort_order').notNull().default(0),
+	createdAt: text('created_at')
+		.notNull()
+		.default(sql`(datetime('now'))`)
+});
+
 export type Application = typeof applications.$inferSelect;
 export type NewApplication = typeof applications.$inferInsert;
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
+export type InterviewResponse = typeof interviewResponses.$inferSelect;
+export type NewInterviewResponse = typeof interviewResponses.$inferInsert;

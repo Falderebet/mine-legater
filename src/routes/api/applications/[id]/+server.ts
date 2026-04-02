@@ -16,7 +16,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	const id = Number(params.id);
 	if (Number.isNaN(id)) throw error(400, 'Ugyldigt ID');
 	const body = await request.json();
-	const { name, url, status, deadline, notes, scrapedInfo } = body;
+	const { name, url, status, deadline, notes, scrapedInfo, interviewCompleted } = body;
 	const result = await db
 		.update(applications)
 		.set({
@@ -26,6 +26,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 			...(deadline !== undefined && { deadline }),
 			...(notes !== undefined && { notes }),
 			...(scrapedInfo !== undefined && { scrapedInfo }),
+			...(interviewCompleted !== undefined && { interviewCompleted }),
 			updatedAt: new Date().toISOString()
 		})
 		.where(eq(applications.id, id))
