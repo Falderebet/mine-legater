@@ -48,20 +48,19 @@
 			messages.push({ role: 'user', text: r.answer, domain: r.domain });
 		}
 
-		// Figure out which domains are done (have responses)
+		// Find first domain that has no responses — resume from there.
+		// Domains with existing answers are NOT marked completed here;
+		// the AI backend decides if more follow-ups are needed when
+		// fetchNextQuestion sends the existing answers for that domain.
 		const domainsWithData = new Set(initialResponses.map((r) => r.domain));
-		for (const d of DOMAINS) {
-			if (domainsWithData.has(d.key)) {
-				domainCompletions[d.key] = true;
-			}
-		}
+		const firstWithout = DOMAINS.findIndex((d) => !domainsWithData.has(d.key));
 
-		// Find first incomplete domain
-		const firstIncomplete = DOMAINS.findIndex((d) => !domainCompletions[d.key]);
-		if (firstIncomplete === -1) {
-			interviewDone = true;
+		if (firstWithout === -1) {
+			// All domains have at least some data — resume from the last one
+			// so the AI can decide if it needs more follow-ups.
+			currentDomainIndex = DOMAINS.length - 1;
 		} else {
-			currentDomainIndex = firstIncomplete;
+			currentDomainIndex = firstWithout;
 		}
 	}
 
@@ -130,9 +129,9 @@
 		userInput = '';
 		scrollToBottom();
 
-		// Save the response
+		// Save the response — block progression if it fails
 		try {
-			await fetch('/api/interview-responses', {
+			const saveRes = await fetch('/api/interview-responses', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -142,8 +141,23 @@
 					answer
 				})
 			});
+			if (!saveRes.ok) {
+				messages = [...messages, {
+					role: 'ai',
+					text: 'Dit svar kunne ikke gemmes. Prøv venligst igen.',
+					domain
+				}];
+				scrollToBottom();
+				return;
+			}
 		} catch {
-			// Save error — non-critical, continue
+			messages = [...messages, {
+				role: 'ai',
+				text: 'Netværksfejl — dit svar blev ikke gemt. Prøv venligst igen.',
+				domain
+			}];
+			scrollToBottom();
+			return;
 		}
 
 		// Fetch next question
