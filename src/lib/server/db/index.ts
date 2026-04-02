@@ -41,6 +41,25 @@ export function ensureMigrated(): Promise<void> {
 					updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 				)
 			`);
+
+			await client.execute(`
+				CREATE TABLE IF NOT EXISTS interview_responses (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+					domain TEXT NOT NULL,
+					question TEXT NOT NULL,
+					answer TEXT NOT NULL,
+					sort_order INTEGER NOT NULL DEFAULT 0,
+					created_at TEXT NOT NULL DEFAULT (datetime('now'))
+				)
+			`);
+
+			// Add interview_completed column if not exists
+			try {
+				await client.execute(`ALTER TABLE applications ADD COLUMN interview_completed INTEGER NOT NULL DEFAULT 0`);
+			} catch {
+				// Column already exists
+			}
 		})();
 	}
 	return _migrationPromise;

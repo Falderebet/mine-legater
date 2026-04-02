@@ -127,7 +127,7 @@
 				});
 			}
 
-			goto(`/applications/${app.id}`);
+			goto(`/applications/${app.id}/interview`);
 		} catch {
 			alert('Fejl ved oprettelse af ansøgning');
 		} finally {

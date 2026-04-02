@@ -46,9 +46,9 @@ test('full wizard: creates application without documents', async ({ page }) => {
 	// Create application
 	await page.getByRole('button', { name: 'Opret ansøgning' }).click();
 
-	// Should redirect to application detail page
-	await expect(page).toHaveURL(/\/applications\/\d+/);
-	await expect(page.getByText('Minimal Legat')).toBeVisible();
+	// Should redirect to interview page
+	await expect(page).toHaveURL(/\/applications\/\d+\/interview/);
+	await expect(page.getByRole('heading', { name: 'Personligt interview' })).toBeVisible();
 });
 
 test('full wizard: creates application with documents', async ({ page }) => {
@@ -78,8 +78,8 @@ test('full wizard: creates application with documents', async ({ page }) => {
 
 	await page.getByRole('button', { name: 'Opret ansøgning' }).click();
 
-	await expect(page).toHaveURL(/\/applications\/\d+/);
-	await expect(page.getByText('Legat Med Dokumenter')).toBeVisible();
+	await expect(page).toHaveURL(/\/applications\/\d+\/interview/);
+	await expect(page.getByRole('heading', { name: 'Personligt interview' })).toBeVisible();
 });
 
 test('wizard: custom document can be added and removed', async ({ page }) => {
@@ -128,7 +128,7 @@ test('created application appears on dashboard', async ({ page }) => {
 	await page.getByRole('button', { name: 'Næste' }).click();
 	await page.getByRole('button', { name: 'Opret ansøgning' }).click();
 
-	await expect(page).toHaveURL(/\/applications\/\d+/);
+	await expect(page).toHaveURL(/\/applications\/\d+\/interview/);
 
 	// Go to dashboard
 	await page.goto('/');
